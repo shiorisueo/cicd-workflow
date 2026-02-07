@@ -84,7 +84,7 @@ jobs:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
-          name: build-output
-          path: dist/
+          name: build-data
+          path: .
       - name: Check Build Output
         run: cat result.txt
