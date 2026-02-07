@@ -41,6 +41,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # lintジョブでもキャッシュを利用して高速化
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # ライブラリをインストールする
+      - name: Install dependencies
+        run: npm ci
+
+      # インストールが終わってから実行
       - name: Run Lint
         run: |
           echo "Linting started..."
