@@ -1,6 +1,7 @@
 name: CI
 # 実行条件
-on: pull_request
+on: 
+  pull_request:
     branches:
       - main
 # 同時実行制御
