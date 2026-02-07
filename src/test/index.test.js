@@ -1,4 +1,4 @@
-const add = require('../src/index');
+const add = require('../src/test/index');
 
 test('1 + 2 が 3 になること', () => {
   expect(add(1, 2)).toBe(3);
