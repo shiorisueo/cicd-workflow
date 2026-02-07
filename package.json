@@ -5,9 +5,12 @@
     "main": "index.js",
     "scripts": {
       "test": "jest",
-      "lint": "echo 'Checking code style...' && sleep 2"
+      "lint": "eslint ."
     },
     "devDependencies": {
-      "jest": "^29.0.0"
+      "jest": "^29.0.0",
+      "eslint": "^10.0.0",
+      "@eslint/js": "^10.0.0",
+      "globals": "^15.0.0"
     }
   }

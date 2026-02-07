@@ -1,6 +1,7 @@
 name: CI
 # 実行条件
-on: pull_request
+on: 
+  pull_request:
     branches:
       - main
 # 同時実行制御
@@ -40,6 +41,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # lintジョブでもキャッシュを利用して高速化
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # ライブラリをインストールする
+      - name: Install dependencies
+        run: npm ci
+
+      # インストールが終わってから実行
       - name: Run Lint
         run: |
           echo "Linting started..."
@@ -49,17 +64,30 @@ jobs:
   build:
     needs: [test, lint]
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: "Production"
+      BUILD_NUMBER: ${{ github.run_number }} # GitHubが自動で振る実行番号
     steps:
-      - uses: actions/checkout@v4
-      - name: Build project
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Build Directory and File
         run: |
-          mkdir dist
-          echo "Build Production Data" > dist/result.txt
+          mkdir -p dist
+          # 環境変数を使って中身を変える
+          echo "Environment: $APP_ENV" > dist/result.txt
+          echo "Build Version: 1.0.$BUILD_NUMBER" >> dist/result.txt
+          echo "Secret Check: ${{ secrets.MY_SECRET_MESSAGE }}" >> dist/result.txt
+      
+      # - name: Build project
+      #   run: |
+      #     mkdir dist
+      #     echo "Build Production Data" > dist/result.txt
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-output
+          name: build-data
           path: dist/
 
   deploy-check:
@@ -69,7 +97,7 @@ jobs:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
-          name: build-output
-          path: dist/
+          name: build-data
+          path: .
       - name: Check Build Output
         run: cat result.txt
