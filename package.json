@@ -1,0 +1,13 @@
+{
+    "name": "github-actions-practice",
+    "version": "1.0.0",
+    "description": "CI/CDの実践用サンプル",
+    "main": "index.js",
+    "scripts": {
+      "test": "jest",
+      "lint": "echo 'Checking code style...' && sleep 2"
+    },
+    "devDependencies": {
+      "jest": "^29.0.0"
+    }
+  }

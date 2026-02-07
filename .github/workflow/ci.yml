@@ -1,0 +1,75 @@
+name: CI
+# 実行条件
+on: pull_request
+    branches:
+      - main
+# 同時実行制御
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # --- 3. ワークフロー並列実行 (test と lint は同時に走ります) ---
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Tests with grouping
+        run: |
+          echo "::group::Running Jest Tests"
+          npm test
+          echo "::endgroup::"
+      
+      - name: Add PR Annotation
+        run: |
+          echo "::warning file=index.js,line=1::テストジョブが正常に実行されました！"
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Lint
+        run: |
+          echo "Linting started..."
+          npx eslint .
+          echo "Linting finished."
+
+  build:
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build project
+        run: |
+          mkdir dist
+          echo "Build Production Data" > dist/result.txt
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+
+  deploy-check:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-output
+          path: dist/
+      - name: Check Build Output
+        run: cat result.txt
